@@ -21,12 +21,15 @@ Windows.Foundation.FoundationContract.winmd	C:\Program Files (x86)\Windows Kits\
 ```
 
 https://docs.microsoft.com/zh-cn/windows/apps/desktop/modernize/desktop-to-uwp-enhance
+## Python Wrapper
+
+see `PythonLib/pythonwrapper.py`.
 
 # Relese
 
 https://github.com/6769/Win10UwpOcr/releases
 
 
-# reference
+# Reference
 
 https://github.com/zh-h/Windows.Media.Ocr.Cli

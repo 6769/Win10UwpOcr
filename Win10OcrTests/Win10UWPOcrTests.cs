@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace Win10Ocr.Tests
 {
@@ -33,6 +34,17 @@ namespace Win10Ocr.Tests
         public void RecognizeJsonStringLineTest()
         {
             var res = win10UWPOcr.RecognizeJsonStringLine(imageFile);
+            Console.WriteLine(res);
+        }
+
+        [TestMethod()]
+        public void RecognizeJsonStringLineTest1()
+        {
+            var steam = File.Open(imageFile, FileMode.Open);
+            var content = new byte[steam.Length];
+            steam.Read(content, 0, (int)steam.Length);
+            
+            var res = win10UWPOcr.RecognizeJsonStringLine(content);
             Console.WriteLine(res);
         }
     }

@@ -75,6 +75,20 @@ namespace Win10Ocr
 
 
         }
+        public async Task<OcrResult> RecognizeAsyncRects(byte[] imageBytes)
+        {
+
+            using (IRandomAccessStream randomAccessStream = ConvertTo(imageBytes))
+            {
+                BitmapDecoder decoder = await BitmapDecoder.CreateAsync(randomAccessStream);
+                using (SoftwareBitmap softwareBitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied))
+                {
+                    OcrResult ocrResult = await engine.RecognizeAsync(softwareBitmap);
+                    return ocrResult;
+                }
+            }
+
+        }
 
         public OcrResult RecognizeRects(string imagePath)
         {
@@ -86,12 +100,7 @@ namespace Win10Ocr
             var result = "";
             foreach (var tempLine in res.Lines)
             {
-                string line = "";
-                foreach (var word in tempLine.Words)
-                {
-                    line += word.Text;
-                }
-                result += line + Environment.NewLine;
+                result += string.Concat(tempLine.Words.Select(w => w.Text)) + Environment.NewLine;
             }
             return result;
         }
@@ -117,6 +126,29 @@ namespace Win10Ocr
             return JsonConvert.SerializeObject(all_reslut);
         }
 
+        public string RecognizeJsonStringWord(byte[] image)
+        {
+            var res = RecognizeAsyncRects(image).GetAwaiter().GetResult();
+
+            var all_reslut = new List<List<ResultOCR>>();
+            foreach (var line in res.Lines)
+            {
+                var lines_reslut = new List<ResultOCR>();
+
+                foreach (var word in line.Words)
+                {
+                    var resi = new ResultOCR();
+                    resi.value = word.Text;
+                    resi.rect = word.BoundingRect;
+                    lines_reslut.Add(resi);
+                }
+                all_reslut.Add(lines_reslut);
+            }
+            return JsonConvert.SerializeObject(all_reslut);
+        }
+
+
+
         public string RecognizeJsonStringLine(string imagePath)
         {
             var res = RecognizeAsyncRects(imagePath).GetAwaiter().GetResult();
@@ -134,6 +166,30 @@ namespace Win10Ocr
             }
             return JsonConvert.SerializeObject(all_reslut);
         }
+
+        public string RecognizeJsonStringLine(byte[] imagePath)
+        {
+            var res = RecognizeAsyncRects(imagePath).GetAwaiter().GetResult();
+            var all_reslut = new List<ResultOCR>();
+            foreach (var line in res.Lines)
+            {
+                var resi = new ResultOCR();
+                resi.value = string.Concat(line.Words.Select(w => w.Text));
+                double left = line.Words.Min(o => o.BoundingRect.Left);
+                double top = line.Words.Min(o => o.BoundingRect.Top);
+                double right = line.Words.Max(o => o.BoundingRect.Right);
+                double bottom = line.Words.Max(o => o.BoundingRect.Bottom);
+                resi.rect = new Rect(left, top, right - left, bottom - top);
+                all_reslut.Add(resi);
+            }
+            return JsonConvert.SerializeObject(all_reslut);
+        }
+        internal static IRandomAccessStream ConvertTo(byte[] arr)
+        {
+            MemoryStream stream = new MemoryStream(arr);
+            return stream.AsRandomAccessStream();
+        }
     }
+
 
 }
